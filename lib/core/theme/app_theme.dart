@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 class AppTheme {
   // Colors - Light Mode
-  static const Color _primaryColor = Color(0xFF00BCD4); // Light Blue for Tourism
+  static const Color _primaryColor = Color(0xFF4DAA1E); // SIGAPIN Brand Green
   static const Color _secondaryColor = Color(0xFFFF5252); // Alert Red for Emergency
   static const Color _backgroundColor = Color(0xFFF5F7FA);
   static const Color _surfaceColor = Colors.white;

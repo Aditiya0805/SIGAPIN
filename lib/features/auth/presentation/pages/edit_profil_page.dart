@@ -25,28 +25,29 @@ class _EditProfilPageState extends State<EditProfilPage> {
     _phoneController = TextEditingController(text: '081234567890');
   }
 
-  void _saveProfile() {
+  void _saveProfile() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
       // Simulasi proses menyimpan data
-      Future.delayed(const Duration(seconds: 1), () {
-        setState(() {
-          _isLoading = false;
-        });
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Profil berhasil diperbarui!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-        
-        // Kembali ke halaman akun
-        Navigator.pop(context);
+      await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
       });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Profil berhasil diperbarui!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      
+      // Kembali ke halaman akun
+      Navigator.pop(context);
     }
   }
 

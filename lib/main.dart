@@ -8,12 +8,20 @@ import 'features/tourism/presentation/pages/home_page.dart';
 import 'features/tourism/presentation/pages/peta_utama_page.dart';
 import 'features/tourism/presentation/pages/notifikasi_page.dart';
 import 'features/auth/presentation/pages/akun_page.dart';
-import 'features/auth/presentation/pages/login_page.dart';
+import 'features/auth/presentation/pages/splash_onboarding_page.dart';
+
+import 'firebase_options.dart';
 
 void main() async {
   // Baris wajib agar inisialisasi Firebase berjalan lancar saat aplikasi start
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp();
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  } catch (e) {
+    debugPrint('Firebase initialization warning: $e');
+  }
 
   runApp(
     const ProviderScope(
@@ -33,7 +41,7 @@ class MyApp extends StatelessWidget {
       darkTheme: AppTheme.darkTheme,
       themeMode:
           ThemeMode.system, // Automatically switch based on system setting
-      home: const LoginPage(),
+      home: const SplashOnboardingPage(),
       debugShowCheckedModeBanner: false,
     );
   }

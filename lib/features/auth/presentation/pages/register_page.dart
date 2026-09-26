@@ -15,25 +15,26 @@ class _RegisterPageState extends State<RegisterPage> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
-  void _register() {
+  void _register() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
       // Simulasi proses registrasi
-      Future.delayed(const Duration(seconds: 1), () {
-        setState(() {
-          _isLoading = false;
-        });
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Akun berhasil dibuat! Silakan login.')),
-        );
-        
-        // Kembali ke halaman login
-        Navigator.pop(context);
+      await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
       });
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Akun berhasil dibuat! Silakan login.')),
+      );
+      
+      // Kembali ke halaman login
+      Navigator.pop(context);
     }
   }
 

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'peta_utama_page.dart';
 import 'jalur_evakuasi_page.dart';
 import 'semua_informasi_page.dart';
-import '../../../auth/presentation/pages/login_page.dart';
 import 'alerta_ai_page.dart';
 
 class HomePage extends StatelessWidget {

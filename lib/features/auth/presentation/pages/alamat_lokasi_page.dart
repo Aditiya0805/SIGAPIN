@@ -13,6 +13,7 @@ class AlamatLokasiPage extends StatefulWidget {
 class _AlamatLokasiPageState extends State<AlamatLokasiPage> {
   final TextEditingController _alamatController = TextEditingController(text: 'Jl. Raya Desa No. 12, RT 03 / RW 02');
   final TextEditingController _kodePosController = TextEditingController(text: '34567');
+  final MapController _mapController = MapController();
   
   final LocationService _locationService = LocationService();
   LatLng _currentLocation = const LatLng(-5.3971, 105.2668); // Default to Lampung coordinates
@@ -36,6 +37,9 @@ class _AlamatLokasiPageState extends State<AlamatLokasiPage> {
           setState(() {
             _currentLocation = LatLng(position.latitude, position.longitude);
           });
+          try {
+            _mapController.move(_currentLocation, 15.0);
+          } catch (_) {}
         }
       }
     );
@@ -113,6 +117,7 @@ class _AlamatLokasiPageState extends State<AlamatLokasiPage> {
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(12),
                 child: FlutterMap(
+                  mapController: _mapController,
                   options: MapOptions(
                     initialCenter: _currentLocation,
                     initialZoom: 15.0,

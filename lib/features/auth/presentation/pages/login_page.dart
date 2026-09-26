@@ -17,33 +17,34 @@ class _LoginPageState extends State<LoginPage> {
   bool _isLoading = false;
   bool _obscurePassword = true;
 
-  void _login() {
+  void _login() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
       // Simulasi proses login
-      Future.delayed(const Duration(seconds: 1), () {
-        setState(() {
-          _isLoading = false;
-        });
-        
-        // Pindah ke MainNavigation setelah login berhasil (menggunakan pushReplacement agar tidak bisa kembali ke halaman login)
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(
-            builder: (context) => MainNavigation(
-              villageName: _desaController.text.trim().isEmpty 
-                  ? 'Desa Sejahtera' 
-                  : _desaController.text.trim(),
-              userName: _nameController.text.trim().isEmpty 
-                  ? 'Pengguna' 
-                  : _nameController.text.trim(),
-            ),
-          ),
-        );
+      await Future.delayed(const Duration(seconds: 1));
+      if (!mounted) return;
+
+      setState(() {
+        _isLoading = false;
       });
+      
+      // Pindah ke MainNavigation setelah login berhasil (menggunakan pushReplacement agar tidak bisa kembali ke halaman login)
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (context) => MainNavigation(
+            villageName: _desaController.text.trim().isEmpty 
+                ? 'Desa Sejahtera' 
+                : _desaController.text.trim(),
+            userName: _nameController.text.trim().isEmpty 
+                ? 'Pengguna' 
+                : _nameController.text.trim(),
+          ),
+        ),
+      );
     }
   }
 
