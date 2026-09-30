@@ -3,6 +3,7 @@ import 'peta_utama_page.dart';
 import 'jalur_evakuasi_page.dart';
 import 'semua_informasi_page.dart';
 import 'alerta_ai_page.dart';
+import 'posko_page.dart';
 
 class HomePage extends StatelessWidget {
   final String villageName;
@@ -126,7 +127,10 @@ class HomePage extends StatelessWidget {
                     icon: Icons.domain,
                     label: 'Posko',
                     onTap: () {
-                      // Posko action
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const PoskoPage()),
+                      );
                     },
                   ),
                   _buildActionItem(

@@ -11,11 +11,9 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _nameController = TextEditingController();
-  final _desaController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
-  bool _obscurePassword = true;
 
   void _login() async {
     if (_formKey.currentState!.validate()) {
@@ -31,17 +29,15 @@ class _LoginPageState extends State<LoginPage> {
         _isLoading = false;
       });
       
-      // Pindah ke MainNavigation setelah login berhasil (menggunakan pushReplacement agar tidak bisa kembali ke halaman login)
+      // Pindah ke MainNavigation setelah login berhasil
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(
           builder: (context) => MainNavigation(
-            villageName: _desaController.text.trim().isEmpty 
-                ? 'Desa Sejahtera' 
-                : _desaController.text.trim(),
-            userName: _nameController.text.trim().isEmpty 
+            villageName: 'Desa Sejahtera',
+            userName: _emailController.text.trim().isEmpty 
                 ? 'Pengguna' 
-                : _nameController.text.trim(),
+                : _emailController.text.trim().split('@')[0],
           ),
         ),
       );
@@ -50,8 +46,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
-    _nameController.dispose();
-    _desaController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -59,7 +54,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.surface,
+      backgroundColor: Colors.white,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -70,67 +65,65 @@ class _LoginPageState extends State<LoginPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Logo atau Icon
-                  Icon(
-                    Icons.security,
-                    size: 80,
-                    color: Theme.of(context).colorScheme.primary,
+                  // Logo/Image
+                  Image.asset(
+                    'assets/images/onboarding_1.jpg', // Placeholder untuk ilustrasi desa
+                    height: 180,
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(
+                        Icons.landscape_rounded,
+                        size: 150,
+                        color: Color(0xFF4CAF50),
+                      );
+                    },
                   ),
                   const SizedBox(height: 24),
                   
                   // Title
-                  Text(
-                    'Selamat Datang',
+                  const Text(
+                    'Selamat Datang!',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Theme.of(context).colorScheme.primary,
-                        ),
+                    style: TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    'Silakan login untuk melanjutkan',
+                  const Text(
+                    'Masuk untuk melanjutkan',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[600],
-                        ),
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.black87,
+                    ),
                   ),
-                  const SizedBox(height: 48),
+                  const SizedBox(height: 40),
 
-                  // Name Input
+                  // Email / No. HP Input
                   TextFormField(
-                    controller: _nameController,
-                    keyboardType: TextInputType.name,
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
                     decoration: InputDecoration(
-                      labelText: 'Nama Lengkap',
-                      prefixIcon: const Icon(Icons.person_outline),
+                      hintText: 'Email / No. HP',
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFF4CAF50)),
                       ),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
-                        return 'Nama tidak boleh kosong';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-
-                  // Desa Input
-                  TextFormField(
-                    controller: _desaController,
-                    keyboardType: TextInputType.text,
-                    decoration: InputDecoration(
-                      labelText: 'Desa yang Ditempati',
-                      prefixIcon: const Icon(Icons.location_city),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'Nama desa tidak boleh kosong';
+                        return 'Email / No. HP tidak boleh kosong';
                       }
                       return null;
                     },
@@ -140,33 +133,50 @@ class _LoginPageState extends State<LoginPage> {
                   // Password Input
                   TextFormField(
                     controller: _passwordController,
-                    obscureText: _obscurePassword,
+                    obscureText: true,
                     decoration: InputDecoration(
-                      labelText: 'Password',
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscurePassword ? Icons.visibility_off : Icons.visibility,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscurePassword = !_obscurePassword;
-                          });
-                        },
-                      ),
+                      hintText: 'Password',
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey.shade300),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFF4CAF50)),
                       ),
                     ),
                     validator: (value) {
                       if (value == null || value.isEmpty) {
                         return 'Password tidak boleh kosong';
                       }
-                      if (value.length < 6) {
-                        return 'Password minimal 6 karakter';
-                      }
                       return null;
                     },
+                  ),
+                  const SizedBox(height: 8),
+                  
+                  // Lupa kata sandi
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: () {},
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.zero,
+                        minimumSize: Size.zero,
+                        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                      ),
+                      child: const Text(
+                        'Lupa kata sandi?',
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ),
                   ),
                   const SizedBox(height: 24),
 
@@ -178,8 +188,9 @@ class _LoginPageState extends State<LoginPage> {
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      foregroundColor: Theme.of(context).colorScheme.onPrimary,
+                      backgroundColor: const Color(0xFF4CAF50),
+                      foregroundColor: Colors.white,
+                      elevation: 0,
                     ),
                     child: _isLoading
                         ? const SizedBox(
@@ -191,10 +202,11 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           )
                         : const Text(
-                            'Login',
+                            'MASUK',
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.bold,
+                              letterSpacing: 1,
                             ),
                           ),
                   ),
@@ -204,12 +216,15 @@ class _LoginPageState extends State<LoginPage> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(
-                        'Belum punya akun?',
-                        style: TextStyle(color: Colors.grey[600]),
+                      const Text(
+                        'Belum punya akun? ',
+                        style: TextStyle(
+                          color: Colors.black87,
+                          fontSize: 14,
+                        ),
                       ),
-                      TextButton(
-                        onPressed: () {
+                      GestureDetector(
+                        onTap: () {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -217,11 +232,12 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                           );
                         },
-                        child: Text(
-                          'Daftar di sini',
+                        child: const Text(
+                          'DAFTAR',
                           style: TextStyle(
-                            color: Theme.of(context).colorScheme.primary,
+                            color: Color(0xFF4CAF50),
                             fontWeight: FontWeight.bold,
+                            fontSize: 14,
                           ),
                         ),
                       ),

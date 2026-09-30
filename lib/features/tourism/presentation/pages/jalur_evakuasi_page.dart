@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import '../../../../core/utils/map_utils.dart';
 
 class JalurEvakuasiPage extends StatefulWidget {
   const JalurEvakuasiPage({super.key});
@@ -186,7 +187,9 @@ class _JalurEvakuasiPageState extends State<JalurEvakuasiPage> {
                     SizedBox(
                       width: double.infinity,
                       child: ElevatedButton(
-                        onPressed: () {},
+                        onPressed: () {
+                          MapUtils.openMap(_safeZone.latitude, _safeZone.longitude);
+                        },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.blue[600],
                           padding: const EdgeInsets.symmetric(vertical: 16),

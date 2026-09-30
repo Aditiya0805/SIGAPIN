@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import '../../../../core/services/location_service.dart';
+import '../../../../core/utils/map_utils.dart';
 
 class AlamatLokasiPage extends StatefulWidget {
   const AlamatLokasiPage({super.key});
@@ -121,6 +122,9 @@ class _AlamatLokasiPageState extends State<AlamatLokasiPage> {
                   options: MapOptions(
                     initialCenter: _currentLocation,
                     initialZoom: 15.0,
+                    onTap: (tapPosition, point) {
+                      MapUtils.openMap(point.latitude, point.longitude);
+                    },
                   ),
                   children: [
                     TileLayer(

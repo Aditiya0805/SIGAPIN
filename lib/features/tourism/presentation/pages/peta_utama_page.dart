@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import '../../../../core/utils/map_utils.dart';
 
 class PetaUtamaPage extends StatefulWidget {
   final bool showBackButton;
@@ -49,6 +50,9 @@ class _PetaUtamaPageState extends State<PetaUtamaPage> {
             options: MapOptions(
               initialCenter: _center,
               initialZoom: 13.0,
+              onTap: (tapPosition, point) {
+                MapUtils.openMap(point.latitude, point.longitude);
+              },
             ),
             children: [
               TileLayer(
