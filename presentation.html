@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+
+    <title>SIGAPIN - Interactive Smart Presentation</title>
+
+    <!-- Reveal.js Stylesheets -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reset.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/theme/black.min.css">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-glow: rgba(16, 185, 129, 0.4);
+            --primary-dark: #064e3b;
+            --accent-cyan: #06b6d4;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --bg-dark: #06090f;
+            --bg-card: rgba(13, 20, 36, 0.82);
+            --card-border: rgba(255, 255, 255, 0.12);
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            background-color: var(--bg-dark);
+            font-family: 'Plus Jakarta Sans', sans-serif !important;
+            color: var(--text-main);
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Ambient Animated Canvas & Orbs */
+        #particle-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .ambient-glow {
+            position: fixed;
+            width: 50vw;
+            height: 50vw;
+            border-radius: 50%;
+            filter: blur(100px);
+            opacity: 0.15;
+            pointer-events: none;
+            z-index: 0;
+            animation: floatGlow 18s ease-in-out infinite alternate;
+        }
+        .glow-1 { top: -10%; left: -10%; background: var(--primary); }
+        .glow-2 { bottom: -10%; right: -10%; background: var(--accent-cyan); animation-delay: -9s; }
+
+        @keyframes floatGlow {
+            0% { transform: translate(0, 0) scale(1); }
+            100% { transform: translate(80px, 60px) scale(1.15); }
+        }
+
+        /* Top Header HUD Bar */
+        .top-hud {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 60px;
+            background: rgba(6, 9, 15, 0.75);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-family: 'Space Grotesk', sans-serif;
+            font-weight: 800;
+            font-size: 1.25rem;
+            letter-spacing: -0.5px;
+            color: #fff;
+        }
+
+        .brand-badge {
+            background: linear-gradient(135deg, var(--primary), var(--accent-cyan));
+            color: #032014;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.65rem;
+            font-weight: 800;
+        }
+
+        .hud-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hud-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: #cbd5e1;
+            padding: 6px 14px;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+
+        .hud-btn:hover {
+            background: rgba(16, 185, 129, 0.2);
+            border-color: var(--primary);
+            color: #fff;
+            transform: translateY(-1px);
+        }
+
+        /* Slide Frame & Scrollable Card */
+        .reveal-viewport {
+            background: transparent !important;
+            padding-top: 50px !important;
+        }
+
+        .reveal .slides {
+            text-align: left;
+        }
+
+        .reveal .slides > section, 
+        .reveal .slides > section > section {
+            background: var(--bg-card);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
+            padding: 36px 44px !important;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.12);
+            text-align: left;
+            
+            /* SCROLLABILITY ENHANCEMENT */
+            max-height: 82vh !important;
+            overflow-y: auto !important;
+            overflow-x: hidden !important;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary) rgba(255, 255, 255, 0.05);
+        }
+
+        /* Custom Modern Scrollbar */
+        .reveal .slides > section::-webkit-scrollbar,
+        .reveal .slides > section > section::-webkit-scrollbar,
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .reveal .slides > section::-webkit-scrollbar-track,
+        .reveal .slides > section > section::-webkit-scrollbar-track,
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 8px;
+        }
+        .reveal .slides > section::-webkit-scrollbar-thumb,
+        .reveal .slides > section > section::-webkit-scrollbar-thumb,
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: linear-gradient(to bottom, var(--primary), var(--accent-cyan));
+            border-radius: 8px;
+        }
+
+        /* Typography */
+        .reveal h1, .reveal h2, .reveal h3, .reveal h4 {
+            font-family: 'Space Grotesk', sans-serif !important;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            color: #ffffff;
+            margin: 0;
+            line-height: 1.2;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #ffffff 15%, #a7f3d0 60%, var(--primary) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+        .gradient-cyan {
+            background: linear-gradient(135deg, #ffffff 15%, #bae6fd 60%, var(--accent-cyan) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+        .gradient-red {
+            background: linear-gradient(135deg, #ffffff 15%, #fecaca 60%, var(--accent-red) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: inline-block;
+        }
+
+        /* Badges & Tags */
+        .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            background: rgba(16, 185, 129, 0.12);
+            border: 1px solid rgba(16, 185, 129, 0.35);
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+        .badge-pill.red {
+            background: rgba(239, 68, 68, 0.14);
+            border-color: rgba(239, 68, 68, 0.4);
+            color: #f87171;
+        }
+        .badge-pill.cyan {
+            background: rgba(6, 182, 212, 0.14);
+            border-color: rgba(6, 182, 212, 0.4);
+            color: #38bdf8;
+        }
+
+        /* Responsive Layout Grids */
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1.1fr 0.9fr;
+            gap: 24px;
+            align-items: center;
+            margin-top: 20px;
+        }
+        .grid-2-equal {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 18px;
+            margin-top: 20px;
+        }
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .grid-2, .grid-2-equal, .grid-3, .grid-4 {
+                grid-template-columns: 1fr !important;
+                gap: 16px !important;
+            }
+            .reveal .slides > section {
+                padding: 24px 20px !important;
+            }
+        }
+
+        /* Interactive Feature Card */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            padding: 20px;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        .glass-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.07);
+            border-color: var(--primary);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(16, 185, 129, 0.2);
+        }
+        .glass-card.danger-hover:hover {
+            border-color: var(--accent-red);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(239, 68, 68, 0.25);
+        }
+        .glass-card.cyan-hover:hover {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4), 0 0 20px rgba(6, 182, 212, 0.25);
+        }
+
+        .icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            margin-bottom: 14px;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--primary);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+        .icon-box.red { background: rgba(239, 68, 68, 0.15); color: var(--accent-red); border-color: rgba(239, 68, 68, 0.3); }
+        .icon-box.cyan { background: rgba(6, 182, 212, 0.15); color: var(--accent-cyan); border-color: rgba(6, 182, 212, 0.3); }
+        .icon-box.orange { background: rgba(245, 158, 11, 0.15); color: var(--accent-orange); border-color: rgba(245, 158, 11, 0.3); }
+
+        .card-heading {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 6px;
+        }
+        .card-text {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            line-height: 1.55;
+            margin: 0;
+        }
+
+        /* Bullet Points */
+        .check-list {
+            list-style: none;
+            padding: 0;
+            margin: 12px 0 0 0;
+        }
+        .check-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 0.88rem;
+            color: #e2e8f0;
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+        .check-list li i {
+            color: var(--primary);
+            margin-top: 4px;
+            font-size: 0.95rem;
+            flex-shrink: 0;
+        }
+
+        /* Interactive Smartphone Simulator */
+        .phone-frame {
+            width: 290px;
+            height: 520px;
+            border-radius: 36px;
+            border: 8px solid #1e293b;
+            background: #020617;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8), 0 0 30px rgba(16, 185, 129, 0.2);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            margin: 0 auto;
+        }
+        .phone-notch {
+            width: 100px;
+            height: 18px;
+            background: #1e293b;
+            border-bottom-left-radius: 12px;
+            border-bottom-right-radius: 12px;
+            align-self: center;
+            z-index: 10;
+        }
+        .phone-screen {
+            flex: 1;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            background: #0b1120;
+            position: relative;
+            overflow-y: auto;
+        }
+        .sim-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.75rem;
+            color: #94a3b8;
+            margin-bottom: 12px;
+        }
+        .sim-tab-content {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+        .sim-tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .phone-nav-bar {
+            height: 50px;
+            background: rgba(15, 23, 42, 0.95);
+            border-top: 1px solid rgba(255, 255, 255, 0.08);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 4px;
+        }
+        .phone-nav-btn {
+            background: transparent;
+            border: none;
+            color: #64748b;
+            font-size: 1rem;
+            cursor: pointer;
+            padding: 6px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+        .phone-nav-btn.active, .phone-nav-btn:hover {
+            color: var(--primary);
+            transform: scale(1.15);
+        }
+
+        /* Interactive SOS Button */
+        .sos-interactive-btn {
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            background: radial-gradient(circle, #ef4444 0%, #991b1b 100%);
+            border: 4px solid rgba(255, 255, 255, 0.4);
+            color: white;
+            font-weight: 800;
+            font-size: 1.1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 20px auto;
+            cursor: pointer;
+            box-shadow: 0 0 35px rgba(239, 68, 68, 0.6);
+            animation: pulseSOS 2s infinite;
+            transition: transform 0.2s;
+            user-select: none;
+        }
+        .sos-interactive-btn:active {
+            transform: scale(0.92);
+        }
+        @keyframes pulseSOS {
+            0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+            70% { box-shadow: 0 0 0 25px rgba(239, 68, 68, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); }
+        }
+
+        /* Live Terminal / Telemetry Box */
+        .telemetry-terminal {
+            background: #020617;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: 12px;
+            padding: 14px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.78rem;
+            color: #34d399;
+            line-height: 1.6;
+        }
+
+        /* Presenter Notes Drawer */
+        .notes-drawer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(10, 15, 26, 0.96);
+            backdrop-filter: blur(20px);
+            border-top: 2px solid var(--primary);
+            padding: 16px 24px;
+            transform: translateY(100%);
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            z-index: 200;
+            max-height: 40vh;
+            overflow-y: auto;
+        }
+        .notes-drawer.open {
+            transform: translateY(0);
+        }
+
+        /* Bottom Floating Quick-Jump Dock */
+        .bottom-dock {
+            position: fixed;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 30px;
+            padding: 6px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 90;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+        .dock-pill {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 0.78rem;
+            font-weight: 600;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            white-space: nowrap;
+        }
+        .dock-pill:hover, .dock-pill.active {
+            background: var(--primary);
+            color: #022c22;
+        }
+
+        /* Reveal Controls Tweaks */
+        .reveal .controls {
+            color: var(--primary) !important;
+            bottom: 18px !important;
+            right: 18px !important;
+        }
+        .reveal .progress {
+            height: 4px !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+        }
+        .reveal .progress span {
+            background: linear-gradient(to right, var(--accent-cyan), var(--primary)) !important;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Canvas Particles -->
+    <canvas id="particle-canvas"></canvas>
+    <div class="ambient-glow glow-1"></div>
+    <div class="ambient-glow glow-2"></div>
+
+    <!-- Top HUD Navigation -->
+    <header class="top-hud">
+        <div class="brand-logo">
+            <i class="fa-solid fa-shield-halved" style="color: var(--primary);"></i>
+            <span>SIGAPIN</span>
+            <span class="brand-badge">PRO v2.0</span>
+        </div>
+        <div class="hud-actions">
+            <button class="hud-btn" onclick="toggleNotes()"><i class="fa-solid fa-note-sticky"></i> Catatan Presenter (N)</button>
+            <button class="hud-btn" onclick="toggleFullScreen()"><i class="fa-solid fa-expand"></i> Fullscreen (F)</button>
+            <button class="hud-btn" style="background: rgba(16, 185, 129, 0.2); border-color: var(--primary); color: #a7f3d0;" onclick="Reveal.slide(0)">
+                <i class="fa-solid fa-house"></i> Awal
+            </button>
+        </div>
+    </header>
+
+    <!-- Main Reveal.js Presentation Framework -->
+    <div class="reveal">
+        <div class="slides">
+
+            <!-- SLIDE 1: Hero & Identitas Aplikasi -->
+            <section data-transition="zoom" data-notes="Buka presentasi dengan menyapa dosen/audiens. Jelaskan bahwa SIGAPIN adalah solusi digital cerdas yang menyatukan pariwisata desa dengan sistem keselamatan bencana terpadu.">
+                <div class="badge-pill"><i class="fa-solid fa-graduation-cap"></i> Tugas Akhir - Sistem Informasi Desa Wisata</div>
+                <h1 style="font-size: 2.8rem; line-height: 1.15; margin-bottom: 12px;">
+                    Aplikasi <span class="gradient-text">SIGAPIN</span>
+                </h1>
+                <h3 style="font-size: 1.2rem; font-weight: 400; color: #cbd5e1;">
+                    Sistem Terpadu Informasi Pariwisata & Mitigasi Tanggap Darurat Bencana
+                </h3>
+
+                <div class="grid-3" style="margin-top: 28px;">
+                    <div class="glass-card" style="padding: 16px;">
+                        <div style="font-size: 1.3rem; color: #38bdf8; margin-bottom: 6px;"><i class="fa-brands fa-flutter"></i> Flutter & Dart</div>
+                        <p class="card-text">Clean Architecture, High-performance mobile UI.</p>
+                    </div>
+                    <div class="glass-card" style="padding: 16px;">
+                        <div style="font-size: 1.3rem; color: #f59e0b; margin-bottom: 6px;"><i class="fa-solid fa-fire"></i> Firebase Cloud</div>
+                        <p class="card-text">Real-time DB Firestore, GPS Telemetry & SOS Sync.</p>
+                    </div>
+                    <div class="glass-card" style="padding: 16px;">
+                        <div style="font-size: 1.3rem; color: var(--accent-cyan); margin-bottom: 6px;"><i class="fa-solid fa-brain"></i> Alerta AI Engine</div>
+                        <p class="card-text">Asisten pintar pemandu wisata & protokol darurat 24/7.</p>
+                    </div>
+                </div>
+
+                <div style="margin-top: 24px; display: flex; gap: 14px; align-items: center;">
+                    <span style="font-size: 0.8rem; color: #94a3b8;">
+                        💡 <em>Gunakan tombol panah kanan <span style="color:#fff;">➔</span> atau geser slide untuk menjelajah. Konten otomatis responsif & dapat di-scroll!</em>
+                    </span>
+                </div>
+            </section>
+
+            <!-- SLIDE 2: Latar Belakang & Masalah Riil -->
+            <section data-transition="fade" data-notes="Jelaskan bahwa desa wisata punya potensi ekonomi tinggi, tetapi banyak berlokasi di area rawan bencana seperti lereng gunung atau bantaran sungai. Wisatawan luar daerah tidak tahu jalan evakuasi.">
+                <div class="badge-pill red"><i class="fa-solid fa-triangle-exclamation"></i> Latar Belakang & Urgensi</div>
+                <h2>Tantangan Keselamatan di Kawasan Wisata</h2>
+                <p style="font-size: 0.95rem; color: #94a3b8; margin-top: 6px;">
+                    Mengapa desa wisata membutuhkan sistem peringatan dan navigasi evakuasi mandiri?
+                </p>
+
+                <div class="grid-3">
+                    <div class="glass-card danger-hover">
+                        <div class="icon-box red"><i class="fa-solid fa-mountain-city"></i></div>
+                        <div class="card-heading">1. Kerentanan Geografis</div>
+                        <p class="card-text">Banyak destinasi alam berada di zona rawan gempa, erupsi vulkanik, longsor, atau banjir bandang yang datang tanpa aba-aba panjang.</p>
+                    </div>
+
+                    <div class="glass-card danger-hover">
+                        <div class="icon-box red"><i class="fa-solid fa-person-circle-question"></i></div>
+                        <div class="card-heading">2. Wisatawan Buta Medan</div>
+                        <p class="card-text">Pengunjung umumnya tidak mengetahui jalur evakuasi resmi, lokasi titik kumpul aman (Assembly Point), atau kontak posko terdekat.</p>
+                    </div>
+
+                    <div class="glass-card danger-hover">
+                        <div class="icon-box red"><i class="fa-solid fa-tower-cell"></i></div>
+                        <div class="card-heading">3. Ketiadaan Sinyal SOS Terpadu</div>
+                        <p class="card-text">Saat keadaan darurat, korban kesulitan mengabarkan posisi koordinat GPS presisi dan kondisi daya baterai ke tim penyelamat.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 3: Solusi Harmonis SIGAPIN -->
+            <section data-transition="slide" data-notes="Soroti bahwa SIGAPIN menyelesaikan dua masalah sekaligus: memajukan pariwisata lokal saat kondisi aman, dan melindungi nyawa saat terjadi bencana.">
+                <div class="badge-pill"><i class="fa-solid fa-lightbulb"></i> Solusi Terpadu</div>
+                <h2>Dua Pilar Utama <span class="gradient-text">SIGAPIN</span></h2>
+                <p style="font-size: 0.95rem; color: #cbd5e1; margin-top: 6px;">
+                    Integrasi ekosistem pariwisata cerdas (Smart Tourism) dan mitigasi bencana digital (Disaster Preparedness).
+                </p>
+
+                <div class="grid-2-equal">
+                    <div class="glass-card" style="border-left: 4px solid var(--primary);">
+                        <div class="icon-box"><i class="fa-solid fa-compass"></i></div>
+                        <div class="card-heading">Pilar 1: Eksplorasi Wisata Digital</div>
+                        <ul class="check-list">
+                            <li><i class="fa-solid fa-circle-check"></i> Katalog destinasi wisata, atraksi budaya, dan UMKM desa.</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Modul edukasi sejarah dan kearifan lokal.</li>
+                            <li><i class="fa-solid fa-circle-check"></i> Interaksi cerdas bersama asisten virtual Alerta AI.</li>
+                        </ul>
+                    </div>
+
+                    <div class="glass-card cyan-hover" style="border-left: 4px solid var(--accent-cyan);">
+                        <div class="icon-box cyan"><i class="fa-solid fa-shield-heart"></i></div>
+                        <div class="card-heading">Pilar 2: Kesiapsiagaan & Tanggap Darurat</div>
+                        <ul class="check-list">
+                            <li><i class="fa-solid fa-circle-check" style="color: var(--accent-cyan);"></i> Tombol Darurat SOS dengan transmisi koordinat GPS & level baterai.</li>
+                            <li><i class="fa-solid fa-circle-check" style="color: var(--accent-cyan);"></i> Navigasi Jalur Evakuasi interaktif menuju Titik Kumpul Aman.</li>
+                            <li><i class="fa-solid fa-circle-check" style="color: var(--accent-cyan);"></i> Direktori Posko Bantuan, ketersediaan logistik & medis real-time.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 4: Interactive Live Demo Simulator Smartphone -->
+            <section data-transition="convex" data-notes="Ini adalah bagian paling menarik. Anda bisa klik tombol-tombol navigasi di bawah layar smartphone simulasi untuk memperagakan tampilan tiap modul secara langsung kepada penguji!">
+                <div class="badge-pill cyan"><i class="fa-solid fa-mobile-screen-button"></i> Live Interactive Simulator</div>
+                <h2>Simulasi Antarmuka <span class="gradient-cyan">SIGAPIN</span></h2>
+                <p style="font-size: 0.85rem; color: #94a3b8; margin-top: 4px;">
+                    Klik tombol navigasi di bawah ponsel untuk menguji tampilan tiap fitur aplikasi:
+                </p>
+
+                <div class="grid-2" style="margin-top: 14px;">
+                    <!-- Phone Mockup Simulator -->
+                    <div class="phone-frame">
+                        <div class="phone-notch"></div>
+                        <div class="phone-screen" id="simScreen">
+                            <div class="sim-header">
+                                <span><i class="fa-solid fa-signal"></i> 4G LTE</span>
+                                <span style="font-weight: 700; color: #fff;">SIGAPIN</span>
+                                <span><i class="fa-solid fa-battery-three-quarters" style="color: var(--primary);"></i> 84%</span>
+                            </div>
+
+                            <!-- Screen 1: Home -->
+                            <div id="tab-home" class="sim-tab-content active">
+                                <div style="background: #15803d; border-radius: 12px; padding: 12px; margin-bottom: 12px; color: #fff;">
+                                    <div style="font-size: 0.7rem; opacity: 0.8;">LOKASI AKTIF</div>
+                                    <div style="font-weight: 700; font-size: 0.95rem;">Desa Wisata Pentingsari</div>
+                                    <div style="font-size: 0.68rem; margin-top: 4px; background: rgba(0,0,0,0.2); padding: 3px 6px; border-radius: 4px; display: inline-block;">
+                                        🟢 Status: Aman & Kondusif
+                                    </div>
+                                </div>
+                                <div style="font-size: 0.75rem; font-weight: 700; color: #fff; margin-bottom: 8px;">Menu Cepat</div>
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                                    <div style="background: rgba(255,255,255,0.06); padding: 8px; border-radius: 8px; text-align: center;">
+                                        <i class="fa-solid fa-map-location" style="color: var(--primary); font-size: 1.1rem;"></i>
+                                        <div style="font-size: 0.65rem; margin-top: 4px; color: #fff;">Peta Wisata</div>
+                                    </div>
+                                    <div style="background: rgba(255,255,255,0.06); padding: 8px; border-radius: 8px; text-align: center;">
+                                        <i class="fa-solid fa-robot" style="color: var(--accent-cyan); font-size: 1.1rem;"></i>
+                                        <div style="font-size: 0.65rem; margin-top: 4px; color: #fff;">Alerta AI</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Screen 2: SOS Emergency -->
+                            <div id="tab-sos" class="sim-tab-content">
+                                <div style="text-align: center;">
+                                    <div style="font-size: 0.8rem; font-weight: 700; color: #f87171;">MODE DARURAT BENCANA</div>
+                                    <div style="font-size: 0.65rem; color: #94a3b8;">Tekan & Tahan untuk broadcast</div>
+                                    <div class="sos-interactive-btn" onclick="triggerSosDemo()">
+                                        <i class="fa-solid fa-tower-broadcast"></i>
+                                        SOS
+                                    </div>
+                                    <div id="sosAlertBox" style="font-size: 0.68rem; color: #34d399; background: rgba(16,185,129,0.15); padding: 6px; border-radius: 6px; display: none;">
+                                        ✅ Sinyal SOS & GPS terkirim ke Posko!
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Screen 3: Jalur Evakuasi -->
+                            <div id="tab-route" class="sim-tab-content">
+                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--primary); margin-bottom: 6px;">Jalur Evakuasi Terdekat</div>
+                                <div style="background: rgba(16,185,129,0.1); border: 1px solid var(--primary); border-radius: 8px; padding: 10px; margin-bottom: 8px;">
+                                    <div style="font-size: 0.72rem; font-weight: 700; color: #fff;">📍 Lapangan Utama Desa (Titik Kumpul A)</div>
+                                    <div style="font-size: 0.65rem; color: #cbd5e1; margin-top: 3px;">Jarak: 350 Meter | Est. Waktu: 4 Menit Jalan Kaki</div>
+                                </div>
+                                <div style="height: 100px; background: #1e293b; border-radius: 8px; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 0.75rem;">
+                                    🗺️ [Simulasi Google Map Rute Aktif]
+                                </div>
+                            </div>
+
+                            <!-- Screen 4: Posko Bencana -->
+                            <div id="tab-posko" class="sim-tab-content">
+                                <div style="font-size: 0.75rem; font-weight: 700; color: var(--accent-orange); margin-bottom: 6px;">Posko Bantuan Terverifikasi</div>
+                                <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px; margin-bottom: 6px;">
+                                    <div style="font-size: 0.7rem; font-weight: 700; color: #fff;">Posko Balai Desa</div>
+                                    <div style="font-size: 0.62rem; color: #94a3b8;">Kapasitas: 120 / 200 Orang | Tim Medis: Siaga</div>
+                                </div>
+                                <div style="background: rgba(255,255,255,0.05); padding: 8px; border-radius: 8px;">
+                                    <div style="font-size: 0.7rem; font-weight: 700; color: #fff;">Posko PMI Sektor Timur</div>
+                                    <div style="font-size: 0.62rem; color: #94a3b8;">Logistik & Air Bersih: Tersedia</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Phone Navigation Bar -->
+                        <div class="phone-nav-bar">
+                            <button class="phone-nav-btn active" onclick="switchSimTab('home', this)"><i class="fa-solid fa-house"></i></button>
+                            <button class="phone-nav-btn" onclick="switchSimTab('sos', this)"><i class="fa-solid fa-triangle-exclamation" style="color:#ef4444;"></i></button>
+                            <button class="phone-nav-btn" onclick="switchSimTab('route', this)"><i class="fa-solid fa-route"></i></button>
+                            <button class="phone-nav-btn" onclick="switchSimTab('posko', this)"><i class="fa-solid fa-tent"></i></button>
+                        </div>
+                    </div>
+
+                    <!-- Simulator Description -->
+                    <div>
+                        <div class="glass-card" style="margin-bottom: 16px;">
+                            <div class="card-heading" style="color: var(--accent-cyan);"><i class="fa-solid fa-fingerprint"></i> Navigasi Interaktif</div>
+                            <p class="card-text">
+                                Antarmuka dirancang seringkas mungkin agar pengguna tidak bingung saat berada dalam kondisi panik atau cuaca ekstrem.
+                            </p>
+                        </div>
+                        <div class="glass-card">
+                            <div class="card-heading"><i class="fa-solid fa-bolt"></i> Respon Seketika</div>
+                            <p class="card-text">
+                                Setiap transisi layar dioptimalkan menggunakan komponen bawaan Flutter sehingga ringan berjalan di smartphone Android berspesifikasi minim.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 5: Arsitektur Sistem & Data Flow -->
+            <section data-transition="slide" data-notes="Jelaskan penggunaan Clean Architecture pada Flutter (Domain, Data, Presentation) serta Firestore Service untuk realtime sync.">
+                <div class="badge-pill"><i class="fa-solid fa-network-wired"></i> Arsitektur & Teknologi</div>
+                <h2>Struktur Sistem & Aliran Data</h2>
+                <p style="font-size: 0.95rem; color: #94a3b8; margin-top: 6px;">
+                    Dibangun dengan standar <strong>Clean Architecture</strong> untuk skalabilitas dan pemeliharaan jangka panjang.
+                </p>
+
+                <div class="grid-3">
+                    <div class="glass-card">
+                        <div class="icon-box"><i class="fa-solid fa-layer-group"></i></div>
+                        <div class="card-heading">Presentation Layer</div>
+                        <p class="card-text">Stateless/Stateful Widgets dengan State Management responsif. Menangani interaksi sentuhan, animasi transisi, dan UI rendering.</p>
+                    </div>
+
+                    <div class="glass-card cyan-hover">
+                        <div class="icon-box cyan"><i class="fa-solid fa-gears"></i></div>
+                        <div class="card-heading">Domain & Core Services</div>
+                        <p class="card-text">
+                            - <code>LocationService</code>: GPS accuracy.<br>
+                            - <code>BatteryService</code>: Telemetri daya HP.<br>
+                            - <code>FirestoreService</code>: Sync stream data.
+                        </p>
+                    </div>
+
+                    <div class="glass-card">
+                        <div class="icon-box orange"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+                        <div class="card-heading">Data & Cloud Backend</div>
+                        <p class="card-text">Firebase Auth, Firestore NoSQL Cloud DB, dan Google Maps API untuk geocoding dan rendering koordinat rute.</p>
+                    </div>
+                </div>
+
+                <div class="telemetry-terminal" style="margin-top: 18px;">
+                    <span style="color:#64748b;">// Payload Data SOS ke Firestore:</span><br>
+                    { "userId": "usr_99182", "lat": -7.63214, "lng": 110.45129, "battery": "84%", "status": "PENDING_RESCUE", "timestamp": "2026-09-30T19:15:00Z" }
+                </div>
+            </section>
+
+            <!-- SLIDE 6: Alur Penggunaan (User Journey) -->
+            <section data-transition="convex" data-notes="Uraikan bagaimana pengguna berpindah secara seamless dari mode wisata santai menjadi mode siaga bencana ketika notifikasi peringatan masuk.">
+                <div class="badge-pill"><i class="fa-solid fa-arrows-split-up-and-left"></i> Skenario Penggunaan</div>
+                <h2>User Journey: Mode Normal vs Mode Darurat</h2>
+
+                <div class="grid-2-equal" style="margin-top: 18px;">
+                    <div class="glass-card" style="border-top: 4px solid var(--primary);">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                            <span style="background: var(--primary); color: #022c22; font-weight: 800; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem;">FASE 1</span>
+                            <span class="card-heading" style="margin: 0;">Kondisi Normal (Wisata)</span>
+                        </div>
+                        <p class="card-text">
+                            Wisatawan tiba di desa wisata ➔ Membuka aplikasi SIGAPIN ➔ Memilih destinasi wisata & kuliner ➔ Bertanya rute/sejarah ke Alerta AI ➔ Menikmati liburan dengan tenang.
+                        </p>
+                    </div>
+
+                    <div class="glass-card danger-hover" style="border-top: 4px solid var(--accent-red);">
+                        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+                            <span style="background: var(--accent-red); color: #fff; font-weight: 800; padding: 3px 8px; border-radius: 6px; font-size: 0.75rem;">FASE 2</span>
+                            <span class="card-heading" style="margin: 0; color: #f87171;">Kondisi Darurat Bencana</span>
+                        </div>
+                        <p class="card-text">
+                            Sirine/Peringatan Masuk ➔ SIGAPIN otomatis menampilkan Jalur Evakuasi terdekat ➔ Pengguna menuju Titik Kumpul Aman ➔ Jika terisolasi/terluka, aktifkan SOS ➔ Posko segera merespons.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 7: Dampak & Manfaat Nyata -->
+            <section data-transition="fade" data-notes="Tekankan manfaat untuk 3 pihak: Wisatawan, Pengelola Desa Wisata, dan Petugas Penyelamat (BPBD/PMI).">
+                <div class="badge-pill cyan"><i class="fa-solid fa-chart-line"></i> Nilai Tambah</div>
+                <h2>Manfaat Multi-Pihak</h2>
+
+                <div class="grid-3">
+                    <div class="glass-card">
+                        <div class="icon-box"><i class="fa-solid fa-person-walking-luggage"></i></div>
+                        <div class="card-heading">Bagi Wisatawan</div>
+                        <ul class="check-list">
+                            <li><i class="fa-solid fa-check"></i> Panduan wisata lengkap tanpa tersesat.</li>
+                            <li><i class="fa-solid fa-check"></i> Jaminan rasa aman (*safety guarantee*).</li>
+                        </ul>
+                    </div>
+
+                    <div class="glass-card cyan-hover">
+                        <div class="icon-box cyan"><i class="fa-solid fa-tree-city"></i></div>
+                        <div class="card-heading">Bagi Pengelola Desa</div>
+                        <ul class="check-list">
+                            <li><i class="fa-solid fa-check" style="color: var(--accent-cyan);"></i> Reputasi destinasi wisata yang tangguh bencana.</li>
+                            <li><i class="fa-solid fa-check" style="color: var(--accent-cyan);"></i> Kanal broadcast peringatan terverifikasi resmi.</li>
+                        </ul>
+                    </div>
+
+                    <div class="glass-card">
+                        <div class="icon-box orange"><i class="fa-solid fa-truck-medical"></i></div>
+                        <div class="card-heading">Bagi Tim SAR & Posko</div>
+                        <ul class="check-list">
+                            <li><i class="fa-solid fa-check" style="color: var(--accent-orange);"></i> Titik lokasi korban diketahui instan via GPS.</li>
+                            <li><i class="fa-solid fa-check" style="color: var(--accent-orange);"></i> Pengalokasian bantuan logistik lebih terarah.</li>
+                        </ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- SLIDE 8: Kesimpulan & Penutup -->
+            <section data-transition="zoom" style="text-align: center;" data-notes="Tutup presentasi dengan kesimpulan lugas dan buka sesi tanya jawab kepada dosen penguji.">
+                <div class="icon-box" style="width: 70px; height: 70px; font-size: 2rem; margin: 0 auto 16px auto;">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <h1 style="font-size: 2.6rem;" class="gradient-text">SIGAPIN</h1>
+                <h3 style="font-size: 1.15rem; font-weight: 400; color: #cbd5e1; margin-top: 10px;">
+                    Mewujudkan Desa Wisata yang Cerdas, Mandiri, dan Tanggap Bencana
+                </h3>
+
+                <div style="margin-top: 36px;">
+                    <div style="display: inline-block; background: rgba(16, 185, 129, 0.15); border: 1px solid var(--primary); padding: 12px 28px; border-radius: 50px;">
+                        <span style="color: var(--primary); font-weight: 700; font-size: 0.95rem; letter-spacing: 1px;">
+                            TERIMA KASIH — SESI TANYA JAWAB & DISKUSI
+                        </span>
+                    </div>
+                </div>
+            </section>
+
+        </div>
+    </div>
+
+    <!-- Bottom Floating Quick-Jump Dock -->
+    <nav class="bottom-dock">
+        <button class="dock-pill active" onclick="Reveal.slide(0)">1. Judul</button>
+        <button class="dock-pill" onclick="Reveal.slide(1)">2. Masalah</button>
+        <button class="dock-pill" onclick="Reveal.slide(2)">3. Solusi</button>
+        <button class="dock-pill" onclick="Reveal.slide(3)">4. Demo UI</button>
+        <button class="dock-pill" onclick="Reveal.slide(4)">5. Arsitektur</button>
+        <button class="dock-pill" onclick="Reveal.slide(5)">6. Alur</button>
+        <button class="dock-pill" onclick="Reveal.slide(6)">7. Manfaat</button>
+        <button class="dock-pill" onclick="Reveal.slide(7)">8. Penutup</button>
+    </nav>
+
+    <!-- Presenter Notes Drawer -->
+    <div class="notes-drawer" id="notesDrawer">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+            <div style="font-weight: 700; color: var(--primary); font-size: 0.95rem;"><i class="fa-solid fa-comment-dots"></i> Poin Pembicaraan Presenter (Cheat Sheet):</div>
+            <button onclick="toggleNotes()" style="background: none; border: none; color: #94a3b8; font-size: 1.1rem; cursor: pointer;">✕</button>
+        </div>
+        <div id="notesContent" style="font-size: 0.88rem; color: #e2e8f0; line-height: 1.6;">
+            Pilih slide untuk melihat catatan presentasi.
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/reveal.js/4.5.0/reveal.min.js"></script>
+    <script>
+        // Initialize Reveal.js with Adaptive Responsive Scaling & Scrolling support
+        Reveal.initialize({
+            hash: true,
+            slideNumber: 'c/t',
+            transition: 'slide',
+            transitionSpeed: 'default',
+            center: false, // Prevents vertically centered clipping, allows natural scroll
+            progress: true,
+            controls: true,
+            keyboard: true,
+            touch: true,
+            margin: 0.05,
+            minScale: 0.2,
+            maxScale: 2.0
+        });
+
+        // Update Dock Active Pill & Presenter Notes on Slide Change
+        Reveal.on('slidechanged', event => {
+            const index = event.indexh;
+            const pills = document.querySelectorAll('.dock-pill');
+            pills.forEach((p, i) => {
+                if (i === index) p.classList.add('active');
+                else p.classList.remove('active');
+            });
+
+            // Update presenter notes
+            const currentSection = event.currentSlide;
+            const notes = currentSection.getAttribute('data-notes') || 'Tidak ada catatan khusus untuk slide ini.';
+            document.getElementById('notesContent').innerHTML = notes;
+        });
+
+        // Toggle Fullscreen
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        }
+
+        // Toggle Presenter Notes Drawer
+        function toggleNotes() {
+            const drawer = document.getElementById('notesDrawer');
+            drawer.classList.toggle('open');
+            const currentSection = Reveal.getCurrentSlide();
+            if (currentSection) {
+                const notes = currentSection.getAttribute('data-notes') || 'Tidak ada catatan khusus untuk slide ini.';
+                document.getElementById('notesContent').innerHTML = notes;
+            }
+        }
+
+        // Keyboard Shortcut for Notes (N) & Fullscreen (F)
+        window.addEventListener('keydown', e => {
+            if (e.key === 'n' || e.key === 'N') {
+                toggleNotes();
+            }
+            if (e.key === 'f' || e.key === 'F') {
+                toggleFullScreen();
+            }
+        });
+
+        // Simulator Tab Switcher
+        function switchSimTab(tabName, btn) {
+            document.querySelectorAll('.sim-tab-content').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.phone-nav-btn').forEach(b => b.classList.remove('active'));
+            
+            const target = document.getElementById('tab-' + tabName);
+            if (target) target.classList.add('active');
+            if (btn) btn.classList.add('active');
+        }
+
+        function triggerSosDemo() {
+            const box = document.getElementById('sosAlertBox');
+            box.style.display = 'block';
+            setTimeout(() => {
+                box.style.display = 'none';
+            }, 4000);
+        }
+
+        // Ambient Particle Canvas Animation
+        const canvas = document.getElementById('particle-canvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+        });
+
+        const particles = Array.from({ length: 45 }, () => ({
+            x: Math.random() * width,
+            y: Math.random() * height,
+            radius: Math.random() * 2 + 1,
+            vx: (Math.random() - 0.5) * 0.4,
+            vy: (Math.random() - 0.5) * 0.4,
+            alpha: Math.random() * 0.5 + 0.2
+        }));
+
+        function drawParticles() {
+            ctx.clearRect(0, 0, width, height);
+            ctx.fillStyle = '#10b981';
+
+            particles.forEach(p => {
+                p.x += p.vx;
+                p.y += p.vy;
+                if (p.x < 0) p.x = width;
+                if (p.x > width) p.x = 0;
+                if (p.y < 0) p.y = height;
+                if (p.y > height) p.y = 0;
+
+                ctx.globalAlpha = p.alpha;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            requestAnimationFrame(drawParticles);
+        }
+        drawParticles();
+    </script>
+</body>
+</html>
